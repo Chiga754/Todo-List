@@ -41,9 +41,13 @@ const tasks = [
 
   //Elements UI
   const listContainer = document.querySelector('.tasks-list-section .list-group');
+  const form = document.forms['addTask'];
+  const inputTitle = form.elements['title'];
+  const inputBody = form.elements['body'];
 
+  // Events
   renderAllTasks(objOfTasks);
-
+  form.addEventListener('submit',onFormSubmitHandler);
 
 
   function renderAllTasks(taskList) {
@@ -77,4 +81,30 @@ const tasks = [
     return li;
   }
 
+  function onFormSubmitHandler(e) {
+    e.preventDefault();
+    const titleValue = inputTitle.value;
+    const bodyValue = inputBody.value;
+
+    if(!titleValue || !bodyValue){
+      alert('Введите title и body');
+      return;
+    }
+    const task = createNewTask(titleValue, bodyValue);
+    const listItem = listItemTemplate(task);
+    listContainer.insertAdjacentElement('afterbegin', listItem);
+    form.reset();
+  }
+
+  function createNewTask(title, body){
+    const newTask = {
+      title,
+      body,
+      completed : false,
+      _id : `task-${Math.random()}`,
+    }
+
+    objOfTasks[newTask._id] = newTask;
+    return {...newTask};
+  }
 })(tasks);
