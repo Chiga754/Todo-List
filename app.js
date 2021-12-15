@@ -46,6 +46,7 @@ const tasks = [
   const inputBody = form.elements['body'];
 
   // Events
+  checkTaskListEmpty();
   renderAllTasks(objOfTasks);
   form.addEventListener('submit',onFormSubmitHandler);
   listContainer.addEventListener('click', onDeleteHandler);
@@ -95,6 +96,7 @@ const tasks = [
     const listItem = listItemTemplate(task);
     listContainer.insertAdjacentElement('afterbegin', listItem);
     form.reset();
+    checkTaskListEmpty();
   }
 
   function createNewTask(title, body){
@@ -127,8 +129,19 @@ const tasks = [
         const id = parent.dataset.taskId;
         const confirmed = deleteTask(id);
         deleteTaskFromHtml(confirmed, parent);
+        checkTaskListEmpty();
       };
   }
 
-
+  function checkTaskListEmpty(){
+      const msg = document.createElement('p');
+      msg.textContent = 'Список задач пуст';
+      msg.classList.add('msg-no-task');
+      const msgElement = listContainer.querySelector('.msg-no-task');
+      if(Object.keys(objOfTasks).length === 0 & listContainer.querySelector('.msg-no-task') === null){
+        listContainer.appendChild(msg);
+        return;
+      }
+      msgElement ? msgElement.remove() : null;
+  }
 })(tasks);
