@@ -50,6 +50,7 @@ const tasks = [
   renderAllTasks(objOfTasks);
   form.addEventListener('submit',onFormSubmitHandler);
   listContainer.addEventListener('click', onDeleteHandler);
+  listContainer.addEventListener('click', onCompletedHandler);
 
   function renderAllTasks(taskList) {
     if (!taskList) {
@@ -64,22 +65,29 @@ const tasks = [
     listContainer.appendChild(fragment);
   }
 
-  function listItemTemplate({_id, title, body} = {}) {
+  function listItemTemplate({_id, title, body, completed} = {}) {
     const li = document.createElement('li');
     li.classList.add("list-group-item", "d-flex", "align-items-center", "flex-wrap", "mt-2");
     li.setAttribute('data-task-id', _id);
+    if(completed){
+      li.style.background = '#00d500';
+    }
     const span = document.createElement('span');
     span.textContent = title;
     span.style.fontWeight = 'bold';
     const deleteBtn = document.createElement('button');
     deleteBtn.classList.add("btn", "btn-danger", "ml-auto", "delete-btn")
     deleteBtn.textContent = 'Delete task';
+    const completedBtn = document.createElement('button');
+    completedBtn.classList.add("btn", "btn-success", "ml-auto", "completed-btn")
+    completedBtn.textContent = 'Completed';
     const article = document.createElement('p');
     article.textContent = body;
     article.classList.add("mt-2", "w-100");
     li.appendChild(span);
     li.appendChild(deleteBtn);
     li.appendChild(article);
+    li.appendChild(completedBtn);
     return li;
   }
 
@@ -133,6 +141,28 @@ const tasks = [
       };
   }
 
+  function onCompletedHandler({target}){
+    if(target.classList.contains('completed-btn')){
+      const parent = target.parentElement;
+      const id = parent.dataset.taskId;
+      completedTask(id);
+      completedTaskFroHtml(id, parent);
+    }
+  }
+
+  function completedTaskFroHtml(id, parent) {
+    if(objOfTasks[id].completed){
+      parent.style.background = '#00d500';
+    }else{
+      parent.style.background = '';
+    }
+    console.log(objOfTasks[id].completed);
+  }
+
+  function completedTask(id) {
+    objOfTasks[id].completed === false ? objOfTasks[id].completed = true : objOfTasks[id].completed = false; 
+  }
+
   function checkTaskListEmpty(){
       const msg = document.createElement('p');
       msg.textContent = 'Список задач пуст';
@@ -144,4 +174,5 @@ const tasks = [
       }
       msgElement ? msgElement.remove() : null;
   }
+
 })(tasks);
