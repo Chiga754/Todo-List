@@ -44,14 +44,14 @@ const tasks = [
   const form = document.forms['addTask'];
   const inputTitle = form.elements['title'];
   const inputBody = form.elements['body'];
-
+  const container = document.querySelector('.tasks-list-section .container');
   // Events
   checkTaskListEmpty();
   renderAllTasks(objOfTasks);
   form.addEventListener('submit',onFormSubmitHandler);
   listContainer.addEventListener('click', onDeleteHandler);
   listContainer.addEventListener('click', onCompletedHandler);
-
+  container.addEventListener('click', taskFilter)
   function renderAllTasks(taskList) {
     if (!taskList) {
       console.error('Не передан список задач!');
@@ -156,7 +156,6 @@ const tasks = [
     }else{
       parent.style.background = '';
     }
-    console.log(objOfTasks[id].completed);
   }
 
   function completedTask(id) {
@@ -173,6 +172,24 @@ const tasks = [
         return;
       }
       msgElement ? msgElement.remove() : null;
+  }
+
+  function taskFilter({target}){
+    const tasks = [...listContainer.children];
+    const tasksCompleted = tasks.filter(task => objOfTasks[task.dataset.taskId].completed);
+
+    if(target.classList.contains('btn-show-all-tasks')){
+      tasks.forEach(task => {
+        task.classList.add('d-flex');
+      })
+    }
+    
+    if(target.classList.contains('btn-active-tasks')){
+      tasksCompleted.forEach(task => {
+        task.classList.remove('d-flex');
+        task.style.display = 'none';
+      });
+    }
   }
 
 })(tasks);
