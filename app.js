@@ -31,11 +31,11 @@ const tasks = [
   },
 ];
 
-(function(arrOfTasks) {
+(function (arrOfTasks) {
   // Для облегчения доступа к таскам приводим массив к объекту объектов.
   const objOfTasks = arrOfTasks.reduce((acc, task) => {
     acc[task._id] = task;
-    return acc; 
+    return acc;
   }, {})
 
 
@@ -45,31 +45,34 @@ const tasks = [
   const inputTitle = form.elements['title'];
   const inputBody = form.elements['body'];
   const container = document.querySelector('.tasks-list-section .container');
+  let activeFilter = 1; // 1 - show all tasks ; 2 - show unfinished tasks;
   // Events
   checkTaskListEmpty();
   renderAllTasks(objOfTasks);
-  form.addEventListener('submit',onFormSubmitHandler);
+  form.addEventListener('submit', onFormSubmitHandler);
   listContainer.addEventListener('click', onDeleteHandler);
   listContainer.addEventListener('click', onCompletedHandler);
   container.addEventListener('click', taskFilter)
+
   function renderAllTasks(taskList) {
     if (!taskList) {
       console.error('Не передан список задач!');
       return
     };
     const fragment = document.createDocumentFragment();
-    Object.values(taskList).forEach(task => {
+    const taskListSort = taskListSortFromCompleted(taskList);
+    Object.values(taskListSort).forEach(task => {
       const li = listItemTemplate(task);
       fragment.appendChild(li);
     })
     listContainer.appendChild(fragment);
   }
 
-  function listItemTemplate({_id, title, body, completed} = {}) {
+  function listItemTemplate({ _id, title, body, completed } = {}) {
     const li = document.createElement('li');
     li.classList.add("list-group-item", "d-flex", "align-items-center", "flex-wrap", "mt-2");
     li.setAttribute('data-task-id', _id);
-    if(completed){
+    if (completed) {
       li.style.background = '#00d500';
     }
     const span = document.createElement('span');
@@ -96,7 +99,7 @@ const tasks = [
     const titleValue = inputTitle.value;
     const bodyValue = inputBody.value;
 
-    if(!titleValue || !bodyValue){
+    if (!titleValue || !bodyValue) {
       alert('Введите title и body');
       return;
     }
@@ -105,86 +108,100 @@ const tasks = [
     listContainer.insertAdjacentElement('afterbegin', listItem);
     form.reset();
     checkTaskListEmpty();
+    taskListSortFromCompleted(objOfTasks);
+    clearListContainer();
+    renderAllTasks(objOfTasks);
   }
 
-  function createNewTask(title, body){
+  function createNewTask(title, body) {
     const newTask = {
       title,
       body,
-      completed : false,
-      _id : `task-${Math.random()}`,
+      completed: false,
+      _id: `task-${Math.random()}`,
     }
 
     objOfTasks[newTask._id] = newTask;
-    return {...newTask};
+    return { ...newTask };
   }
 
-  function deleteTask(id){
+  function deleteTask(id) {
     const isConfirm = confirm(`Вы действительно хотите удалить задачу ${objOfTasks[id].title}?`);
-    if(!isConfirm) return;
+    if (!isConfirm) return;
     delete objOfTasks[id];
     return isConfirm;
   }
 
-  function deleteTaskFromHtml(confirmed, element){
-    if(!confirmed) return;
+  function deleteTaskFromHtml(confirmed, element) {
+    if (!confirmed) return;
     element.remove();
   }
 
-  function onDeleteHandler({target}) {
-      if(target.classList.contains('delete-btn')){
-        const parent = target.closest('[data-task-id]');
-        const id = parent.dataset.taskId;
-        const confirmed = deleteTask(id);
-        deleteTaskFromHtml(confirmed, parent);
-        checkTaskListEmpty();
-      };
+  function onDeleteHandler({ target }) {
+    if (target.classList.contains('delete-btn')) {
+      const parent = target.closest('[data-task-id]');
+      const id = parent.dataset.taskId;
+      const confirmed = deleteTask(id);
+      deleteTaskFromHtml(confirmed, parent);
+      checkTaskListEmpty();
+    };
   }
 
-  function onCompletedHandler({target}){
-    if(target.classList.contains('completed-btn')){
+  function onCompletedHandler({ target }) {
+    if (target.classList.contains('completed-btn')) {
       const parent = target.parentElement;
       const id = parent.dataset.taskId;
       completedTask(id);
       completedTaskFroHtml(id, parent);
+      if (activeFilter === 2) {
+        parent.style.display = 'none';
+        parent.classList.remove('d-flex');
+      }
+      if (activeFilter === 1) {
+        clearListContainer();
+        const taskListSort = taskListSortFromCompleted(objOfTasks);
+        renderAllTasks(taskListSort);
+      }
     }
   }
 
   function completedTaskFroHtml(id, parent) {
-    if(objOfTasks[id].completed){
+    if (objOfTasks[id].completed) {
       parent.style.background = '#00d500';
-    }else{
+    } else {
       parent.style.background = '';
     }
   }
 
   function completedTask(id) {
-    objOfTasks[id].completed === false ? objOfTasks[id].completed = true : objOfTasks[id].completed = false; 
+    objOfTasks[id].completed === false ? objOfTasks[id].completed = true : objOfTasks[id].completed = false;
   }
 
-  function checkTaskListEmpty(){
-      const msg = document.createElement('p');
-      msg.textContent = 'Список задач пуст';
-      msg.classList.add('msg-no-task');
-      const msgElement = listContainer.querySelector('.msg-no-task');
-      if(Object.keys(objOfTasks).length === 0 & listContainer.querySelector('.msg-no-task') === null){
-        listContainer.appendChild(msg);
-        return;
-      }
-      msgElement ? msgElement.remove() : null;
+  function checkTaskListEmpty() {
+    const msg = document.createElement('p');
+    msg.textContent = 'Список задач пуст';
+    msg.classList.add('msg-no-task');
+    const msgElement = listContainer.querySelector('.msg-no-task');
+    if (Object.keys(objOfTasks).length === 0 & listContainer.querySelector('.msg-no-task') === null) {
+      listContainer.appendChild(msg);
+      return;
+    }
+    msgElement ? msgElement.remove() : null;
   }
 
-  function taskFilter({target}){
+  function taskFilter({ target }) {
     const tasks = [...listContainer.children];
     const tasksCompleted = tasks.filter(task => objOfTasks[task.dataset.taskId].completed);
 
-    if(target.classList.contains('btn-show-all-tasks')){
+    if (target.classList.contains('btn-show-all-tasks')) {
+      activeFilter = 1;
       tasks.forEach(task => {
         task.classList.add('d-flex');
       })
     }
-    
-    if(target.classList.contains('btn-active-tasks')){
+
+    if (target.classList.contains('btn-active-tasks')) {
+      activeFilter = 2;
       tasksCompleted.forEach(task => {
         task.classList.remove('d-flex');
         task.style.display = 'none';
@@ -192,4 +209,11 @@ const tasks = [
     }
   }
 
+  function taskListSortFromCompleted(taskList) {
+    return Object.values(taskList).sort((prev, next) => prev.completed - next.completed);
+  }
+
+  function clearListContainer() {
+    listContainer.textContent = '';
+  }
 })(tasks);
