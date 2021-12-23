@@ -104,7 +104,7 @@ const tasks = [
       '--input-focus-box-shadow': '0 0 0 0.2rem rgba(141, 143, 146, 0.25)',
     },
   };
-  let lastSelectedTheme = 'default';
+  let lastSelectedTheme = localStorage.getItem('app_theme') || 'default';
 
   //Elements UI
   const listContainer = document.querySelector('.tasks-list-section .list-group');
@@ -114,6 +114,7 @@ const tasks = [
   const container = document.querySelector('.tasks-list-section .container');
   const themeSelect = document.getElementById('themeSelect');
   let activeFilter = 1; // 1 - show all tasks ; 2 - show unfinished tasks;
+  setTheme(lastSelectedTheme);
   // Events
   checkTaskListEmpty();
   renderAllTasks(objOfTasks);
@@ -295,6 +296,7 @@ const tasks = [
     };
     setTheme(selectedTheme);
     lastSelectedTheme = selectedTheme;
+    localStorage.setItem('app_theme', selectedTheme);
   }
   function setTheme(name) {
     const selectedThemObj = themes[name];
